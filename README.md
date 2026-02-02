@@ -1,6 +1,9 @@
 ### Hexlet tests and linter status:
 [![Actions Status](https://github.com/figan915/devops-engineer-from-scratch-project-313/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/figan915/devops-engineer-from-scratch-project-313/actions)
 
+### Github Actions status:
+[![flask_actions](https://github.com/figan915/devops-engineer-from-scratch-project-313/actions/workflows/test-flask-app.yml/badge.svg)](https://github.com/figan915/devops-engineer-from-scratch-project-313/actions/workflows/test-flask-app.yml)
+
 ### Простое приложение на flask
 ```На первом этапе запускается на localhost:8080 и возвращает ответ "pong" при get запросе  localhost:8080/ping. 
 Для запуска приложения нужно 
