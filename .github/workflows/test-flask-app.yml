@@ -27,8 +27,11 @@ jobs:
             ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-
             uv-${{ hashFiles('pyproject.toml', 'uv.lock') }}
 
-      - name: install uv
+      - name: install uv globally
         run: pip install uv
+
+      - name: create virtual environment
+        run: uv venv
 
       - name: install dependencies
         run: make install
