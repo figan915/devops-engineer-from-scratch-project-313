@@ -4,6 +4,9 @@
 ### Github Actions status:
 [![flask_actions](https://github.com/figan915/devops-engineer-from-scratch-project-313/actions/workflows/test-flask-app.yml/badge.svg)](https://github.com/figan915/devops-engineer-from-scratch-project-313/actions/workflows/test-flask-app.yml)
 
+### Render:
+https://devops-engineer-from-scratch-project-313-porh.onrender.com
+
 ### Простое приложение на flask
 ```На первом этапе запускается на localhost:8080 и возвращает ответ "pong" при get запросе  localhost:8080/ping. 
 Для запуска приложения нужно 
