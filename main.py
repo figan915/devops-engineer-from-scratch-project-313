@@ -9,3 +9,7 @@ def index():
 @app.get("/ping")
 def get_ping():
     return "pong"
+
+@app.errorhandler(404)
+def not_found(error):
+    return "Page Not Found", 404

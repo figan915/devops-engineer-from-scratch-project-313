@@ -1,0 +1,40 @@
+name: flask_actions
+
+on:
+  push:
+    branches: ['**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: set up Python
+        id: setup-python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Cache uv and pip
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/uv
+            ~/.cache/pip
+          key: >
+            ${{ runner.os }}-python-${{ steps.setup-python.outputs.python-version }}-
+            uv-${{ hashFiles('pyproject.toml', 'uv.lock') }}
+
+      - name: install uv
+        run: pip install uv
+
+      - name: install dependencies
+        run: make install
+
+      - name: Lint
+        run: make lint
+
+      - name: Run tests
+        run: make test
