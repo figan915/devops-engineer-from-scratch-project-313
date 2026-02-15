@@ -17,6 +17,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # =========================
 WORKDIR /app
 
+# Фиксируем путь виртуального окружения uv (иначе uv может создать .venv в другом месте)
+ENV UV_PROJECT_ENVIRONMENT=/app/.venv
+
+# Используем python/flask из виртуального окружения uv
+ENV PATH="/app/.venv/bin:$PATH"
 
 # =========================
 # 4️⃣ Копируем только файлы зависимостей для кэширования слоёв
@@ -28,8 +33,9 @@ COPY pyproject.toml uv.lock ./
 # 5️⃣ Установка uv и зависимостей
 # =========================
 # Устанавливаем uv и зависимости строго по lock-файлу (как в CI)
+# uv создаст виртуальное окружение в /app/.venv
 RUN pip install --no-cache-dir uv \
-    && uv sync --frozen
+    && uv sync --frozen --no-dev
 
 
 # =========================
@@ -43,7 +49,6 @@ COPY . .
 # =========================
 ENV FLASK_APP=main
 ENV FLASK_RUN_HOST=0.0.0.0
-ENV FLASK_RUN_PORT=8080
 ENV FLASK_ENV=production
 
 
@@ -59,4 +64,4 @@ EXPOSE 8080
 # =========================
 # На Render порт задаётся через переменную окружения PORT.
 # Локально используем 8080 по умолчанию.
-CMD ["sh", "-lc", "uv run flask run --host 0.0.0.0 --port ${PORT:-8080}"]
+CMD ["sh", "-c", "/app/.venv/bin/python -m flask --app main run --host 0.0.0.0 --port ${PORT:-8080}"]
