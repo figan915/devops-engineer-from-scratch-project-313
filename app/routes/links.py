@@ -79,7 +79,7 @@ def create_link():
     )
 
     # Достаём engine, созданный в create_app(), из конфига приложения
-    engine = current_app.config["DB_ENGINE"]
+    #engine = current_app.config["DB_ENGINE"]
 
     try:
         with get_session() as session:

@@ -1,8 +1,8 @@
 import os
 
 from flask import Flask
-from sqlmodel import SQLModel, create_engine
-from app.models import Link
+#from sqlmodel import SQLModel, create_engine
+#from app.models import Link
 from app.db import init_db
 
 
