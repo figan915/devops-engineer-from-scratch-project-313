@@ -1,7 +1,7 @@
 # =========================
 # 1️⃣ Базовый образ
 # =========================
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 
 # =========================
@@ -27,9 +27,9 @@ COPY pyproject.toml uv.lock ./
 # =========================
 # 5️⃣ Установка uv и зависимостей
 # =========================
+# Устанавливаем uv и зависимости строго по lock-файлу (как в CI)
 RUN pip install --no-cache-dir uv \
-    && uv venv \
-    && uv pip install --no-cache-dir -e ".[dev]"
+    && uv sync --frozen
 
 
 # =========================
@@ -43,6 +43,7 @@ COPY . .
 # =========================
 ENV FLASK_APP=main
 ENV FLASK_RUN_HOST=0.0.0.0
+ENV FLASK_RUN_PORT=8080
 ENV FLASK_ENV=production
 
 
@@ -56,4 +57,6 @@ EXPOSE 8080
 # 9️⃣ Команда по умолчанию
 # Flask app (runtime)
 # =========================
-CMD ["uv", "run", "flask", "run", "--port", "8080"]
+# На Render порт задаётся через переменную окружения PORT.
+# Локально используем 8080 по умолчанию.
+CMD ["sh", "-lc", "uv run flask run --host 0.0.0.0 --port ${PORT:-8080}"]

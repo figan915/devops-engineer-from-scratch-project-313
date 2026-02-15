@@ -144,6 +144,7 @@ venv.bak/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+check.py
 
 # Pyre type checker
 .pyre/
@@ -163,3 +164,7 @@ cython_debug/
 
 # Asciinema cast
 *.cast
+
+#Other scripts
+check.py
+dev.db
