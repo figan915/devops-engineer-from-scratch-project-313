@@ -1,32 +1,32 @@
+version: "3.9"
+
 services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-appdb}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: appdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d appdb"]
+      interval: 2s
+      timeout: 5s
+      retries: 20
     volumes:
       - pgdata:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-appdb}"]
-      interval: 5s
-      timeout: 3s
-      retries: 20
 
   app:
     build: .
-    env_file:
-      - .env
     environment:
-      # ВАЖНО: для SQLAlchemy/SQLModel лучше использовать postgresql+psycopg2://
-      DATABASE_URL: ${DATABASE_URL}
-      BASE_URL: ${BASE_URL}
-      PORT: ${PORT:-80}
-      # необязательно, только для разработки
-      FLASK_ENV: ${FLASK_ENV:-development}
+      # Каноничный DSN для SQLAlchemy/SQLModel (самый совместимый)
+      DATABASE_URL: postgresql://postgres:password@db:5432/appdb
+      # Для формирования short_url в JSON
+      BASE_URL: http://localhost:8080
+      # В проде у тебя Nginx слушает 80 (Render тоже любит 80)
+      PORT: "80"
+      FLASK_ENV: development
     ports:
+      # Снаружи 8080 (удобно локально), внутри контейнера 80 (nginx)
       - "8080:80"
     depends_on:
       db:
