@@ -29,6 +29,11 @@ def create_app(*, testing: bool = False) -> Flask:
                 "DATABASE_URL is required. Example: postgres://postgres:password@db:5432/appdb?sslmode=disable"
             )
 
+        # Нормализация для совместимости: некоторые окружения (в т.ч. чекеры/платформы)
+        # могут передавать DSN как postgres://..., а SQLAlchemy ожидает postgresql://...
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace("postgres://", "postgresql://", 1)
+
         # BASE_URL нужен, чтобы формировать short_url в ответах
         base_url = os.getenv("BASE_URL")
         if not base_url:
