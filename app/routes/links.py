@@ -1,6 +1,9 @@
 # app/routes/links.py
 
-from flask import Blueprint, current_app, jsonify, request
+import json
+
+from flask import Blueprint, current_app, jsonify, request, make_response
+from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
 from app.db import get_session
@@ -12,29 +15,71 @@ from app.models import Link
 bp = Blueprint("links", __name__)
 
 
+
 @bp.get("/api/links")
 def list_links():
-    """Возвращает список всех коротких ссылок."""
+    """Возвращает список коротких ссылок.
+
+    Поддерживает пагинацию через query-параметр:
+        /api/links?range=[0,10]
+
+    Важно: трактуем диапазон как [start, end) (end НЕ включается),
+    чтобы "10 элементов" соответствовало 0–9 (как в подсказке ТЗ).
+
+    Ответ всегда массив объектов, плюс заголовок Content-Range:
+        Content-Range: links <from>-<to>/<total>
+    """
     base = current_app.config["BASE_URL"].rstrip("/")
 
-    with get_session() as session:
-        statement = select(Link)
-        links = session.exec(statement).all()
+    range_raw = request.args.get("range")
 
-    return (
-        jsonify(
-            [
-                {
-                    "id": link.id,
-                    "original_url": link.original_url,
-                    "short_name": link.short_name,
-                    "short_url": f"{base}/r/{link.short_name}",
-                }
-                for link in links
-            ]
-        ),
-        200,
-    )
+    # По умолчанию — без range отдаём всё (можно легко поменять на дефолтную страницу)
+    start = 0
+    end = None
+
+    if range_raw is not None:
+        try:
+            start, end = json.loads(range_raw)
+            start = int(start)
+            end = int(end)
+            if start < 0 or end < 0 or start > end:
+                raise ValueError("invalid bounds")
+        except Exception:
+            return jsonify({"error": "Invalid range. Example: range=[0,10]"}), 400
+
+    with get_session() as session:
+        total = session.exec(select(func.count()).select_from(Link)).one()
+
+        stmt = select(Link).order_by(Link.id)
+        if range_raw is not None:
+            limit = end - start  # end — exclusive
+            stmt = stmt.offset(start).limit(limit)
+
+        links = session.exec(stmt).all()
+
+    data = [
+        {
+            "id": link.id,
+            "original_url": link.original_url,
+            "short_name": link.short_name,
+            "short_url": f"{base}/r/{link.short_name}",
+        }
+        for link in links
+    ]
+
+    # Формируем Content-Range по реально возвращённым данным
+    if total == 0:
+        content_range = "links 0-0/0"
+    elif len(data) == 0:
+        # Диапазон ушёл за пределы данных
+        content_range = f"links {start}-{start-1}/{total}"
+    else:
+        content_range = f"links {start}-{start + len(data) - 1}/{total}"
+
+    resp = make_response(jsonify(data), 200)
+    resp.headers["Content-Range"] = content_range
+    resp.headers["Accept-Ranges"] = "links"
+    return resp
 
 
 @bp.get("/api/links/<int:link_id>")

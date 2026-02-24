@@ -49,6 +49,7 @@ def test_list_links_empty(client):
 
     assert response.status_code == 200
     assert response.get_json() == []
+    assert response.headers.get("Content-Range") == "links 0-0/0"
 
 
 def test_list_links_contains_created(client):
@@ -58,6 +59,7 @@ def test_list_links_contains_created(client):
 
     list_resp = client.get("/api/links")
     assert list_resp.status_code == 200
+    assert list_resp.headers.get("Content-Range") == "links 0-0/1"
 
     data = list_resp.get_json()
     assert isinstance(data, list)
@@ -176,4 +178,39 @@ def test_put_link_conflict(client):
 
     assert put_resp.status_code == 409
     assert put_resp.get_json() == {"error": "short_name already exists"}
+
+
+# Helpers and pagination tests
+def _seed_n_links(client, n: int):
+    for i in range(n):
+        payload = {
+            "original_url": f"https://example.com/{i}",
+            "short_name": f"seed-{i}",
+        }
+        res = client.post("/api/links", json=payload)
+        assert res.status_code == 201
+
+
+def test_links_pagination_first_10(client):
+    _seed_n_links(client, 11)
+
+    res = client.get("/api/links?range=[0,10]")
+    assert res.status_code == 200
+    assert res.headers.get("Content-Range") == "links 0-9/11"
+
+    data = res.get_json()
+    assert isinstance(data, list)
+    assert len(data) == 10
+
+
+def test_links_pagination_skip_5_take_5(client):
+    _seed_n_links(client, 11)
+
+    res = client.get("/api/links?range=[5,10]")
+    assert res.status_code == 200
+    assert res.headers.get("Content-Range") == "links 5-9/11"
+
+    data = res.get_json()
+    assert isinstance(data, list)
+    assert len(data) == 5
 
