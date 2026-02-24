@@ -72,6 +72,23 @@ def test_list_links_contains_created(client):
     assert item["short_url"].endswith("/r/exmpl")
 
 
+def test_redirect_short_link_success(client):
+    # Создаём короткую ссылку
+    payload = {"original_url": "https://example.com", "short_name": "man"}
+    create_resp = client.post("/api/links", json=payload)
+    assert create_resp.status_code == 201
+
+    # Проверяем, что /r/<short_name> отдаёт редирект
+    resp = client.get("/r/man", follow_redirects=False)
+    assert resp.status_code == 302
+    assert resp.headers.get("Location") == "https://example.com"
+
+
+def test_redirect_short_link_not_found(client):
+    resp = client.get("/r/not-exists", follow_redirects=False)
+    assert resp.status_code == 404
+
+
 def test_get_link_by_id_not_found(client):
     response = client.get("/api/links/999999")
 

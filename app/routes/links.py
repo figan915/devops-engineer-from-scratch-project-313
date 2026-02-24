@@ -2,7 +2,7 @@
 
 import json
 
-from flask import Blueprint, current_app, jsonify, request, make_response
+from flask import Blueprint, current_app, jsonify, request, make_response, redirect, abort
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
@@ -204,3 +204,15 @@ def update_link(link_id: int):
         200,
     )
 
+
+@bp.get("/r/<string:short_name>")
+def redirect_short_link(short_name: str):
+    """Редирект по короткому имени"""
+    with get_session() as session:
+        stmt = select(Link).where(Link.short_name == short_name)
+        link = session.exec(stmt).first()
+
+    if link is None:
+        abort(404)
+
+    return redirect(link.original_url, code=302)

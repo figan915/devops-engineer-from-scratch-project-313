@@ -10,7 +10,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d appdb"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-appdb}"]
       interval: 5s
       timeout: 3s
       retries: 20
@@ -23,15 +23,14 @@ services:
       # ВАЖНО: для SQLAlchemy/SQLModel лучше использовать postgresql+psycopg2://
       DATABASE_URL: ${DATABASE_URL}
       BASE_URL: ${BASE_URL}
-      # необязательно, но удобно
+      PORT: ${PORT:-80}
+      # необязательно, только для разработки
       FLASK_ENV: ${FLASK_ENV:-development}
     ports:
-      - "8080:8080"
+      - "8080:80"
     depends_on:
       db:
         condition: service_healthy
-    command: >
-      uv run flask --app main run --host 0.0.0.0 --port 8080
 
 volumes:
   pgdata:
