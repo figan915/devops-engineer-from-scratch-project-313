@@ -15,6 +15,88 @@ from app.models import Link
 bp = Blueprint("links", __name__)
 
 
+def _validation_error(details: list[dict]):
+    # Hexlet checker (vitest) expects 422 with {"detail": [...]} like FastAPI
+    return jsonify({"detail": details}), 422
+
+
+def _not_found_error():
+    return jsonify({"detail": "link not found"}), 404
+
+
+def _parse_and_validate_payload(required: bool = True):
+    """Validate incoming JSON body to match external contract tests.
+
+    - Missing required fields -> 422 with detail array
+    - Wrong types -> 422 with detail array
+    """
+    if not request.is_json:
+        return None, _validation_error(
+            [
+                {
+                    "loc": ["body"],
+                    "msg": "Invalid JSON",
+                    "type": "json_invalid",
+                }
+            ]
+        )
+
+    payload = request.get_json(silent=True)
+    if payload is None or not isinstance(payload, dict):
+        return None, _validation_error(
+            [
+                {
+                    "loc": ["body"],
+                    "msg": "Invalid JSON",
+                    "type": "json_invalid",
+                }
+            ]
+        )
+
+    errors: list[dict] = []
+
+    if required:
+        if "original_url" not in payload:
+            errors.append(
+                {
+                    "loc": ["body", "original_url"],
+                    "msg": "Field required",
+                    "type": "missing",
+                }
+            )
+        if "short_name" not in payload:
+            errors.append(
+                {
+                    "loc": ["body", "short_name"],
+                    "msg": "Field required",
+                    "type": "missing",
+                }
+            )
+
+    if "original_url" in payload and not isinstance(payload["original_url"], str):
+        errors.append(
+            {
+                "loc": ["body", "original_url"],
+                "msg": "Input should be a valid string",
+                "type": "string_type",
+            }
+        )
+
+    if "short_name" in payload and not isinstance(payload["short_name"], str):
+        errors.append(
+            {
+                "loc": ["body", "short_name"],
+                "msg": "Input should be a valid string",
+                "type": "string_type",
+            }
+        )
+
+    if errors:
+        return None, _validation_error(errors)
+
+    return payload, None
+
+
 
 @bp.get("/api/links")
 def list_links():
@@ -92,7 +174,7 @@ def get_link(link_id: int):
         link = session.exec(statement).first()
 
     if link is None:
-        return jsonify({"error": "link not found"}), 404
+        return _not_found_error()
 
     return (
         jsonify(
@@ -114,9 +196,9 @@ def create_link():
     Конфликт short_name: 409 + {"error": "short_name already exists"}
     Невалидный запрос: 400 + {"error": "invalid payload"}
     """
-    payload = request.get_json(silent=True)
-    if not payload or "original_url" not in payload or "short_name" not in payload:
-        return jsonify({"error": "invalid payload"}), 400
+    payload, err = _parse_and_validate_payload(required=True)
+    if err:
+        return err
 
     link = Link(
         short_name=payload["short_name"],
@@ -158,7 +240,7 @@ def delete_link(link_id: int):
         link = session.exec(statement).first()
 
         if link is None:
-            return jsonify({"error": "link not found"}), 404
+            return _not_found_error()
 
         session.delete(link)
         session.commit()
@@ -170,16 +252,16 @@ def delete_link(link_id: int):
 @bp.put("/api/links/<int:link_id>")
 def update_link(link_id: int):
     """Обновляет ссылку по id."""
-    payload = request.get_json(silent=True)
-    if not payload or "original_url" not in payload or "short_name" not in payload:
-        return jsonify({"error": "invalid payload"}), 400
+    payload, err = _parse_and_validate_payload(required=True)
+    if err:
+        return err
 
     with get_session() as session:
         statement = select(Link).where(Link.id == link_id)
         link = session.exec(statement).first()
 
         if link is None:
-            return jsonify({"error": "link not found"}), 404
+            return _not_found_error()
 
         link.original_url = payload["original_url"]
         link.short_name = payload["short_name"]
