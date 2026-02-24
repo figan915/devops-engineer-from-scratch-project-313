@@ -168,3 +168,4 @@ cython_debug/
 #Other scripts
 check.py
 dev.db
+node_modules

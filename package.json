@@ -1,0 +1,33 @@
+{
+  "name": "devops-engineer-from-scratch-project-313",
+  "version": "1.0.0",
+  "description": "[![Actions Status](https://github.com/figan915/devops-engineer-from-scratch-project-313/actions/workflows/hexlet-check.yml/badge.svg)](https://github.com/figan915/devops-engineer-from-scratch-project-313/actions)",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "ui": "npx start-hexlet-devops-deploy-crud-frontend",
+  "api": "BASE_URL=http://localhost:8080 DATABASE_URL=sqlite:///./dev.db uv run flask --app main run --host 0.0.0.0 --port 8080",
+  "dev": "concurrently -k -n api,ui \"npm run api\" \"npm run ui\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/figan915/devops-engineer-from-scratch-project-313.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/figan915/devops-engineer-from-scratch-project-313/issues"
+  },
+  "homepage": "https://github.com/figan915/devops-engineer-from-scratch-project-313#readme",
+  "dependencies": {
+    "@hexlet/project-devops-deploy-crud-frontend": "^1.0.4"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
