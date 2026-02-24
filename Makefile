@@ -1,8 +1,8 @@
 install:
 	uv pip install -e ".[dev]"
 
-run-app:
-	uv run flask --app main --debug run --port 8080
+run:
+	PORT=$${PORT:-8080} uv run flask --app main run --host 0.0.0.0 --port $$PORT
 lint:
 	uv run ruff check 
 test:
