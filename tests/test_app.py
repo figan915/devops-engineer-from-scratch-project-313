@@ -241,4 +241,3 @@ def test_links_pagination_skip_5_take_5(client):
     data = res.get_json()
     assert isinstance(data, list)
     assert len(data) == 5
-

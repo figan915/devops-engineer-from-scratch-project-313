@@ -1,14 +1,9 @@
-# app/db.py
-
 from __future__ import annotations
-
 from contextlib import contextmanager
 from typing import Iterator
-
 from flask import Flask, current_app
 from sqlalchemy.engine import Engine
 from sqlmodel import SQLModel, Session, create_engine
-
 
 
 def init_db(flask_app: Flask, database_url: str) -> None:

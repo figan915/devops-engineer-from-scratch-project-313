@@ -1,17 +1,20 @@
-# app/routes/links.py
-
 import json
-
-from flask import Blueprint, abort, current_app, jsonify, make_response, redirect, request
+from flask import (
+    Blueprint,
+    abort,
+    current_app,
+    jsonify,
+    make_response,
+    redirect,
+    request,
+)
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
-
 from app.db import get_session
 from app.models import Link
 
 bp = Blueprint("links", __name__)
-
 
 
 def _validation_error(details: list[dict]):

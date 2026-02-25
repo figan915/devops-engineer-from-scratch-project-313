@@ -9,7 +9,8 @@ def create_app(*, testing: bool = False) -> Flask:
     """Фабрика приложения.
 
     - В режиме production/dev переменные окружения DATABASE_URL и BASE_URL обязательны.
-    - В режиме тестирования используем SQLite in-memory, чтобы тесты были быстрыми и изолированными.
+    - В режиме тестирования используем SQLite in-memory, чтобы тесты были быстрыми и 
+    - изолированными.
       BASE_URL в тестах можно брать из env или использовать дефолт.
     """
 
@@ -37,7 +38,9 @@ def create_app(*, testing: bool = False) -> Flask:
         # BASE_URL нужен, чтобы формировать short_url в ответах
         base_url = os.getenv("BASE_URL")
         if not base_url:
-            raise RuntimeError("BASE_URL is required. Example: BASE_URL=https://short.io")
+            raise RuntimeError(
+                "BASE_URL is required. Example: BASE_URL=https://short.io"
+            )
 
     # Сохраняем BASE_URL в конфиг приложения, чтобы не дергать os.getenv() по всему коду
     app.config["BASE_URL"] = base_url
