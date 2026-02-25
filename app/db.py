@@ -4,8 +4,10 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from typing import Iterator
-from sqlmodel import SQLModel, Session, create_engine
+
 from flask import Flask, current_app
+from sqlalchemy.engine import Engine
+from sqlmodel import SQLModel, Session, create_engine
 
 
 
@@ -27,7 +29,7 @@ def init_db(flask_app: Flask, database_url: str) -> None:
     SQLModel.metadata.create_all(engine)
 
 
-def get_engine():
+def get_engine() -> Engine:
     """Достаём engine из текущего Flask-приложения."""
     return current_app.config["DB_ENGINE"]
 

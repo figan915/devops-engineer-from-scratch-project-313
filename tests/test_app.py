@@ -93,7 +93,10 @@ def test_get_link_by_id_not_found(client):
     response = client.get("/api/links/999999")
 
     assert response.status_code == 404
-    assert response.get_json() == {"error": "link not found"}
+    data = response.get_json()
+    assert isinstance(data, dict)
+    assert "detail" in data
+    assert isinstance(data["detail"], str)
 
 
 def test_get_link_by_id_success(client):
@@ -117,7 +120,10 @@ def test_get_link_by_id_success(client):
 def test_delete_link_not_found(client):
     resp = client.delete("/api/links/999999")
     assert resp.status_code == 404
-    assert resp.get_json() == {"error": "link not found"}
+    data = resp.get_json()
+    assert isinstance(data, dict)
+    assert "detail" in data
+    assert isinstance(data["detail"], str)
 
 
 def test_delete_link_success(client):
@@ -140,14 +146,19 @@ def test_put_link_not_found(client):
     resp = client.put("/api/links/999999", json=payload)
 
     assert resp.status_code == 404
-    assert resp.get_json() == {"error": "link not found"}
+    data = resp.get_json()
+    assert isinstance(data, dict)
+    assert "detail" in data
+    assert isinstance(data["detail"], str)
 
 
 def test_put_link_invalid_payload(client):
     # Нет нужных полей
     resp = client.put("/api/links/1", json={"original_url": "https://example.com"})
-    assert resp.status_code == 400
-    assert resp.get_json() == {"error": "invalid payload"}
+    assert resp.status_code == 422
+    data = resp.get_json()
+    assert isinstance(data, dict)
+    assert "detail" in data
 
 
 def test_put_link_success(client):

@@ -2,17 +2,16 @@
 
 import json
 
-from flask import Blueprint, current_app, jsonify, request, make_response, redirect, abort
+from flask import Blueprint, abort, current_app, jsonify, make_response, redirect, request
 from sqlalchemy import func
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import select
-from app.db import get_session
 
-# ВАЖНО: на этом этапе модель Link живёт в main.py, поэтому импортируем её оттуда.
-# Позже вынесем модель в app/models.py и тогда импорт будет: from app.models import Link
+from app.db import get_session
 from app.models import Link
 
 bp = Blueprint("links", __name__)
+
 
 
 def _validation_error(details: list[dict]):
@@ -97,7 +96,6 @@ def _parse_and_validate_payload(required: bool = True):
     return payload, None
 
 
-
 @bp.get("/api/links")
 def list_links():
     """Возвращает список коротких ссылок.
@@ -115,7 +113,7 @@ def list_links():
 
     range_raw = request.args.get("range")
 
-    # По умолчанию — без range отдаём всё (можно легко поменять на дефолтную страницу)
+    # По умолчанию — без range отдаём всё
     start = 0
     end = None
 
@@ -154,7 +152,7 @@ def list_links():
         content_range = "links 0-0/0"
     elif len(data) == 0:
         # Диапазон ушёл за пределы данных
-        content_range = f"links {start}-{start-1}/{total}"
+        content_range = f"links {start}-{start - 1}/{total}"
     else:
         content_range = f"links {start}-{start + len(data) - 1}/{total}"
 
@@ -188,14 +186,10 @@ def get_link(link_id: int):
         200,
     )
 
+
 @bp.post("/api/links")
 def create_link():
-    """Создаёт новую короткую ссылку.
-
-    Успех: 201 + объект ссылки
-    Конфликт short_name: 409 + {"error": "short_name already exists"}
-    Невалидный запрос: 400 + {"error": "invalid payload"}
-    """
+    """Создаёт новую короткую ссылку."""
     payload, err = _parse_and_validate_payload(required=True)
     if err:
         return err
@@ -205,19 +199,14 @@ def create_link():
         original_url=payload["original_url"],
     )
 
-    # Достаём engine, созданный в create_app(), из конфига приложения
-    #engine = current_app.config["DB_ENGINE"]
-
     try:
         with get_session() as session:
             session.add(link)
             session.commit()
             session.refresh(link)
     except IntegrityError:
-        # UNIQUE-конфликт по short_name
         return jsonify({"error": "short_name already exists"}), 409
 
-    # short_url не храним в БД — формируем на лету из BASE_URL и short_name
     base = current_app.config["BASE_URL"].rstrip("/")
     return (
         jsonify(
@@ -245,7 +234,6 @@ def delete_link(link_id: int):
         session.delete(link)
         session.commit()
 
-    # 204 должен быть без тела
     return "", 204
 
 
@@ -289,7 +277,7 @@ def update_link(link_id: int):
 
 @bp.get("/r/<string:short_name>")
 def redirect_short_link(short_name: str):
-    """Редирект по короткому имени"""
+    """Редирект по короткому имени."""
     with get_session() as session:
         stmt = select(Link).where(Link.short_name == short_name)
         link = session.exec(stmt).first()

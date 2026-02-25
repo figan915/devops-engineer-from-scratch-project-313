@@ -1,8 +1,7 @@
 import os
 
 from flask import Flask
-#from sqlmodel import SQLModel, create_engine
-#from app.models import Link
+
 from app.db import init_db
 
 
@@ -13,6 +12,7 @@ def create_app(*, testing: bool = False) -> Flask:
     - В режиме тестирования используем SQLite in-memory, чтобы тесты были быстрыми и изолированными.
       BASE_URL в тестах можно брать из env или использовать дефолт.
     """
+
     app = Flask(__name__)
 
     # --- Конфигурация приложения (env) ---
@@ -41,6 +41,7 @@ def create_app(*, testing: bool = False) -> Flask:
 
     # Сохраняем BASE_URL в конфиг приложения, чтобы не дергать os.getenv() по всему коду
     app.config["BASE_URL"] = base_url
+
     # --- Инициализация БД (идемпотентно: повторный запуск не ломает таблицы) ---
     init_db(app, database_url)
 
@@ -54,7 +55,9 @@ def create_app(*, testing: bool = False) -> Flask:
         return "pong"
 
     from app.routes.links import bp as links_bp
+
     app.register_blueprint(links_bp)
+
     # Оставляем текущий контракт 404 для существующих тестов
     @app.errorhandler(404)
     def not_found(error):
